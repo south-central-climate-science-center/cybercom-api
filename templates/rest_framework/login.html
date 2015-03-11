@@ -1,0 +1,12 @@
+{% extends "rest_framework/login_base.html" %}
+
+{# Override this template in your own templates directory to customize #}
+{% block branding %}
+    <h3 style="margin: 0 0 20px;"> {{ application_title }}  </h3>
+{% endblock %}
+
+{% block style%}
+    {{ block.super }}
+    <link rel="stylesheet" href="/static/custom/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="/static/custom/css/custom.css" type="text/css">
+{% endblock %}

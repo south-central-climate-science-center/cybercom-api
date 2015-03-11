@@ -1,0 +1,16 @@
+{% extends "rest_framework/queue_run_base.html" %}
+
+{% block bootstrap_theme %}{% endblock %}
+
+{% block title %} {{ api_settings.user_settings.Page_Title }} {% endblock %}
+{% block style%}
+    {{ block.super }}
+    <link rel="stylesheet" href="/static/api/custom/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="/static/api/custom/css/custom.css" type="text/css">
+{% endblock %}
+
+{% block branding %}
+    <a class='brand' rel="nofollow" href='#'> {{ api_settings.user_settings.Application_Title }} <span class="version">API 1.0</span></a>
+{% endblock %}
+
+{% block bootstrap_navbar_variant %}{% endblock %}
