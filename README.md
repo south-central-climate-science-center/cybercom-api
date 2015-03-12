@@ -19,5 +19,5 @@ This docker container export to localhost:8080
  
 Can proxy with NGINX
 
-Default User: admin
+Default User: admin  
 Default Password: admin
