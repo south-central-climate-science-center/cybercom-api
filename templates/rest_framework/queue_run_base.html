@@ -122,14 +122,10 @@
 {% endfor %}</div>{% if request.method.upper == 'GET' %}
 <table class="table"><tr><td style="width:100px;">Task Name</td><td><span class="nocode lit">{{ content.task_name }}</span></td></tr>
 <tr><td>Docstring</td><td><span class="nocode lit">{{ content.task_docstring|urlize_quoted_links }}</span></td></tr>
-<tr><td>Curl Example</td><td><span class="nocode lit">curl -X POST --data-ascii '{ "function": "{{ content.task_name }}",
-      "queue": "{{ content.queue }}",
-      "args": [{{ content.args }}],
-      "kwargs": { {{ content.kwargs }} }
-}' {{ content.task_url }} -H Content-Type:application/json</span></td></tr>
-<tr style="border-style:hidden;"><td style="text-align:right;">Options</td><td><span class="nocode lit">-H 'Authorization: Token &lt;&lt;authorized-token&gt;&gt;'
+<tr><td>Curl Example</td><td><span class="nocode lit">curl -X POST --data-ascii '{"function":"{{ content.task_name }}","queue":"{{ content.queue }}","args":[{{ content.args }}],"kwargs":{ {{ content.kwargs }} },"tags": []}' {{ content.task_url }}.json -H Content-Type:application/json -H 'Authorization: Token {{ content.auth_token  }}'</span></td></tr>
+<!--<tr style="border-style:hidden;"><td style="text-align:right;">Options</td><td><span class="nocode lit">-H 'Authorization: Token &lt;&lt;authorized-token&gt;&gt;'
 -u username
-</span></td></tr>
+</span></td></tr>-->
 </table>{%  else %}{{ content|urlize_quoted_links }}{% endif %}</pre>{% endautoescape %}
             {% if display_edit_forms %}
 
@@ -240,7 +236,8 @@
         form_data = { "function": "{{ content.task_name }}",
             "queue": "{{ content.queue }}",
             "args": [{{ content.args }}],
-            "kwargs": { {{ content.kwargs }} }
+            "kwargs": { {{ content.kwargs }} },
+            "tags": [] 
         };
         $('#id__content').val(JSON.stringify(form_data,null,4));
     });

@@ -12,7 +12,7 @@ from celery.task.control import inspect
 from pymongo import Connection, DESCENDING
 from datetime import datetime
 import pickle
-import re
+import re, math
 import collections
 from ordereddict import OrderedDict
 from rest_framework.reverse import reverse
@@ -50,7 +50,7 @@ else:
     memcache = None
 
 
-def update_tasks(timeout=6000, user="guest"):
+def update_tasks(timeout=60000, user="guest"):
     """ 
     Get list of registered tasks from celery, store in memcache for 
         `timeout` period if set (default to 6000s) if available 
@@ -154,7 +154,7 @@ class QueueTask():
         self.i = i  #inspect()
 
 
-    def run(self, task, task_args, task_kwargs, task_queue, user):
+    def run(self, task, task_args, task_kwargs, task_queue, user,tags):
         """ 
         Submit task to celerey async tasks
         """
@@ -170,7 +170,8 @@ class QueueTask():
             'args': task_args,
             'kwargs': task_kwargs,
             'queue': task_queue,
-            'timestamp': datetime.now()
+            'timestamp': datetime.now(),
+            'tags':tags
         }
         self.db[self.database][self.collection].insert(task_log)
 
@@ -241,7 +242,7 @@ class QueueTask():
             page = 1
         limit = int(limit)
         col = self.db[self.database][self.collection]
-        result = {'count': 0, 'next': None, 'previous': None, 'results': []}
+        result = {'count': 0,'next': None, 'previous': None, 'results': []}
         history = []
         if task_name:
             result['count'] = col.find({'task_name': task_name, 'user': user}).count()
@@ -251,7 +252,15 @@ class QueueTask():
             data = col.find({'user': user}, {'_id': False}, skip=(page - 1) * limit, limit=limit).sort('timestamp',
                                                                                                        DESCENDING)
             result['count'] = col.find({'user': user}).count()
-
+        if result['count'] <= page*limit:
+            if page != 1:
+                result['previous']= "%s?page=%d&page_size=%d" % (reverse('queue-user-tasks', request=request),page-1,limit)
+        if result['count'] >= page*limit:
+            if result['count'] != page*limit:
+                result['next'] = "%s?page=%d&page_size=%d" % (reverse('queue-user-tasks', request=request),page+1,limit)
+            if page > 1:
+                result['previous']= "%s?page=%d&page_size=%d" % (reverse('queue-user-tasks', request=request),page-1,limit)
+        result['meta']= {'page':page,'page_size':limit,'pages':math.ceil(float(result['count'])/float(limit))}
         for item in data:
             for i, v in item['kwargs'].items():
                 try:

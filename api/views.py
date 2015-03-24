@@ -9,7 +9,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from .models import AuthtokenToken
 from django.contrib.auth.decorators import login_required
-
+from md5 import md5
 class LoginRequiredMixin(object):
     @classmethod
     def as_view(cls, **initkwargs):
@@ -45,6 +45,7 @@ class UserProfile(LoginRequiredMixin,APIView):
         serializer = self.serializer_class(data,context={'request':request})
         tok = Token.objects.get_or_create(user=self.request.user)
         data = serializer.data
+        data['gravator_url']="http://www.gravatar.com/avatar/%s" % (md5(data['email'].strip(' \t\n\r')).hexdigest()) 
         data['auth-token']= str(tok[0])
         return Response(data)
 

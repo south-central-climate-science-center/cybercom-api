@@ -10,7 +10,7 @@ from rest_framework.renderers import JSONRenderer, JSONPRenderer
 from renderer import QueueRunBrowsableAPIRenderer
 from rest_framework.parsers import JSONParser
 from util import trim
-
+from rest_framework.authtoken.models import Token
 #task = list_tasks()['available_tasks']
 
 q = QueueTask()
@@ -61,7 +61,13 @@ class Run(APIView):
         docstring = trim(task_docstring(task_name))
         curl_url = reverse('run-main',kwargs={'task_name':task_name},request=request)
         #reverse("%s-run" % (task_name), request=request)
-        data = {'task_name': task_name, 'task_docstring': docstring, 'task_url': curl_url, 'queue': 'celery'}
+        username= self.get_username(request)
+        if not username == "guest":
+            token = Token.objects.get_or_create(user=self.request.user)
+            auth_token = str(token[0])
+        else:
+            auth_token = "< authorized-token > "
+        data = {'task_name': task_name, 'task_docstring': docstring, 'task_url': curl_url, 'queue': 'celery','auth_token':auth_token}
         return Response(data)
 
     def post(self, request,task_name=None,format=None):
@@ -74,7 +80,8 @@ class Run(APIView):
             raise Exception("%s Queue is not available" % (queue))
         args = request.DATA.get('args', [])
         kwargs = request.DATA.get('kwargs', {})
-        result = self.q.run(task_name, args, kwargs, queue, self.get_username(request))
+        tags = request.DATA.get('tags',[])
+        result = self.q.run(task_name, args, kwargs, queue, self.get_username(request),tags)
         result['result_url']=reverse('queue-task-result', kwargs={'task_id':result['task_id']}, request=request)
         return Response(result)
 
@@ -114,7 +121,7 @@ class UserTasks(APIView):
             username = request.user.username
         return username
 
-    def get(self, request,format=None):
+    def get(self, request,format=None, **kwargs):
         result = {'count': 0, 'next': None, 'previous': None, 'results': []}
         page_parm = api_settings.user_settings.get('PAGINATE_BY_PARAM', 'page_size')
         if page_parm in request.GET:
