@@ -1,2 +1,4 @@
 data/
 config.sh
+*.swp
+*.pyc
