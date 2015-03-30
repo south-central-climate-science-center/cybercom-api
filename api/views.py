@@ -62,6 +62,13 @@ class UserProfile(LoginRequiredMixin,APIView):
             user.set_password(password)
             data = {"password":"Successfully Updated"}
             return Response(data)
+        auth_tok  = request.DATA.get('auth-token', None)
+        if str(auth_tok).lower()=="update":
+            tok = Token.objects.get(user=user)    
+            tok.delete()
+            tok = Token.objects.get_or_create(user=self.request.user)
+            data = {"auth-token":str(tok[0])}
+            return Response(data)
         else:
             user.first_name =request.DATA.get('first_name', user.first_name)
             user.last_name = request.DATA.get('last_name', user.last_name)
