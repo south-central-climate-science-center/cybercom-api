@@ -150,3 +150,7 @@ if FORCE_SCRIPT_NAME:
         base=FORCE_SCRIPT_NAME
     LOGIN_REDIRECT_URL ="%s/" % (base)
     LOGIN_URL="%s/api-auth/login/" % (base)
+else:
+    base=''
+    LOGIN_REDIRECT_URL ="%s/" % (base)
+    LOGIN_URL="%s/api-auth/login/" % (base)
