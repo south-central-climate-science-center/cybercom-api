@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 from django.contrib.auth.models import Permission
-from api.views import APIRoot, UserProfile
+from api.views import APIRoot, UserProfile #, UserView
+#from rest_framework import routers
 
 try:
     admin.site.register(Permission)
@@ -10,7 +11,11 @@ except:
 
 admin.autodiscover()
 
+#router=routers.SimpleRouter()
+#router.register(r'accounts', UserView, 'list')
+
 urlpatterns = patterns('',
+    #url(r'^api/', include(router.urls)),
     # Django Rest Login Urls
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # Queue Application
