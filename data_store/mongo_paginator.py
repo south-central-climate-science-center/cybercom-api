@@ -6,6 +6,15 @@ from bson.objectid import ObjectId
 from ordereddict import OrderedDict
 from rest_framework.templatetags.rest_framework import replace_query_param
 
+def MongoDistinct(field,DB_MongoClient, database, collection, query=None):
+    db = DB_MongoClient
+    if query:
+        query = ast.literal_eval(query)
+        q = [(k, v) for k, v in query['spec'].items()]
+        query['spec'] = dict(q)
+        return db[database][collection].distinct(field,query=query)
+    return db[database][collection].distinct(field)
+
 
 def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1, nPerPage=None, uri=''):
     db = DB_MongoClient

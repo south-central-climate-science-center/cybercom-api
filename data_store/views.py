@@ -8,7 +8,7 @@ from api import config
 from .models import dumb_model
 # Create your views here.
 from rest_framework.settings import api_settings
-from .mongo_paginator import MongoDataPagination, MongoDataGet
+from .mongo_paginator import MongoDataPagination, MongoDistinct, MongoDataGet
 from .renderer import DataBrowsableAPIRenderer, mongoJSONPRenderer,mongoJSONRenderer
 from rest_framework.renderers import XMLRenderer, YAMLRenderer,JSONPRenderer
 from rest_framework.parsers import JSONParser
@@ -72,7 +72,7 @@ class DataStore(APIView):
     #    self.db = MongoClient(host=self.connect_uri)
     #    return super(DataStore, self).dispatch(request, *args, **kwargs)
 
-    def get(self, request, database=None, collection=None, format=None):
+    def get(self, request, database=None, collection=None,action="find",field=None, format=None):
         #self.db = MongoClient(host=self.connect_uri)
         #print self.connect_uri
         query = request.QUERY_PARAMS.get('query', None)
@@ -88,7 +88,13 @@ class DataStore(APIView):
             page_size = int(api_settings.user_settings.get('PAGINATE_BY', 10))
 
         url = request and request.build_absolute_uri() or ''
-        data = MongoDataPagination(self.db, database, collection, query=query, page=page, nPerPage=page_size, uri=url)
+        if action.lower()=="distinct":
+            if field:
+                data = MongoDistinct(field,self.db, database, collection, query=query)
+            else:
+                data = {"ERROR":"Must provide keyword field to perform distinct operation."}
+        else:
+            data = MongoDataPagination(self.db, database, collection, query=query, page=page, nPerPage=page_size, uri=url)
         return Response(data)
     def post(self,request,database=None,collection=None,format=None):
         return Response(request.DATA)
