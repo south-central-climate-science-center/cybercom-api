@@ -88,7 +88,7 @@ class DataStore(APIView):
             page_size = int(api_settings.user_settings.get('PAGINATE_BY', 10))
 
         url = request and request.build_absolute_uri() or ''
-        action = request.QUERY_PARAMS.get('action',None)
+        action = request.QUERY_PARAMS.get('action','None')
         if action.lower()=="distinct":
             field = request.QUERY_PARAMS.get('field',None)
             if field:
