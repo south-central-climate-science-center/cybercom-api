@@ -72,7 +72,7 @@ class DataStore(APIView):
     #    self.db = MongoClient(host=self.connect_uri)
     #    return super(DataStore, self).dispatch(request, *args, **kwargs)
 
-    def get(self, request, database=None, collection=None,action="find",field=None, format=None):
+    def get(self, request, database=None, collection=None, format=None):
         #self.db = MongoClient(host=self.connect_uri)
         #print self.connect_uri
         query = request.QUERY_PARAMS.get('query', None)
@@ -88,7 +88,9 @@ class DataStore(APIView):
             page_size = int(api_settings.user_settings.get('PAGINATE_BY', 10))
 
         url = request and request.build_absolute_uri() or ''
+        action = request.QUERY_PARAMS.get('action',None)
         if action.lower()=="distinct":
+            field = request.QUERY_PARAMS.get('field',None)
             if field:
                 data = MongoDistinct(field,self.db, database, collection, query=query)
             else:
