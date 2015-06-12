@@ -7,6 +7,7 @@ from queue.ccelery import config
 
 celery = Celery().config_from_object(celeryconfig)
 from celery.task.control import inspect
+from celery.result import AsyncResult
 #from celery import send_task
 #from celery.execute import send_task
 from pymongo import Connection, DESCENDING
@@ -190,7 +191,11 @@ class QueueTask():
         if task_id:
             result = [item for item in col.find({'_id': task_id})]
             if len(result) == 0:
-                return {"status": "No status found for task_id '%s'." % (task_id)}
+                try:
+                    res = AsyncResult(task_id)
+                    return {"status": "%s" % (res.status),"task_id":"%s" % (task_id)}
+                except:
+                    return {"status": "PENDiNG" ,"task_id": "%s" % (task_id)}
             else:
                 return {"status": result[0]['status']}
         else:

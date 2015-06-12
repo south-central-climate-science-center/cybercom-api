@@ -10,9 +10,9 @@ def MongoDistinct(field,DB_MongoClient, database, collection, query=None):
     db = DB_MongoClient
     if query:
         query = ast.literal_eval(query)
-        q = [(k, v) for k, v in query['spec'].items()]
-        query['spec'] = dict(q)
-        return db[database][collection].distinct(field,query=query)
+        #q = [(k, v) for k, v in query['spec'].items()]
+        #query['spec'] = dict(q)
+        return db[database][collection].find(**query).distinct(field)
     return db[database][collection].distinct(field)
 
 
