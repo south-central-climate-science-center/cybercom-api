@@ -195,7 +195,8 @@ class QueueTask():
                     res = AsyncResult(task_id)
                     return {"status": "%s" % (res.status),"task_id":"%s" % (task_id)}
                 except:
-                    return {"status": "PENDiNG" ,"task_id": "%s" % (task_id)}
+		    #raise
+                    return {"status": "ERROR IN OBTAINING STATUS" ,"task_id": "%s" % (task_id)}
             else:
                 return {"status": result[0]['status']}
         else:
