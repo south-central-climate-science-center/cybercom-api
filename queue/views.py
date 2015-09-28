@@ -2,16 +2,21 @@
 from rest_framework.settings import api_settings
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.permissions import IsAuthenticatedOrReadOnly,DjangoModelPermissionsOrAnonReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly,DjangoModelPermissionsOrAnonReadOnly,AllowAny
 from rest_framework.views import APIView
 from ccelery.q import QueueTask, list_tasks, task_docstring
 from models import Run_model
 from rest_framework.renderers import JSONRenderer, JSONPRenderer
 from renderer import QueueRunBrowsableAPIRenderer
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import JSONParser,MultiPartParser,FormParser,FileUploadParser
 from util import trim
 from rest_framework.authtoken.models import Token
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 #task = list_tasks()['available_tasks']
+#from rest_framework.viewsets import ModelViewSet
+#from serializer import FileUploadSerializer
+import os
 
 q = QueueTask()
 
@@ -40,7 +45,7 @@ class Queue(APIView):
 class Run(APIView):
     permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
     model = Run_model
-    parser_classes = (JSONParser,)
+    parser_classes = (JSONParser,MultiPartParser,FormParser)
     renderer_classes = (QueueRunBrowsableAPIRenderer, JSONRenderer, JSONPRenderer,)
 
     def __init__(self,q=q, *args, **kwargs):
@@ -84,7 +89,6 @@ class Run(APIView):
         result = self.q.run(task_name, args, kwargs, queue, self.get_username(request),tags)
         result['result_url']=reverse('queue-task-result', kwargs={'task_id':result['task_id']}, request=request)
         return Response(result)
-
 
 class UserResult(APIView):
     permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
@@ -137,51 +141,4 @@ class UserTasks(APIView):
         task_name = request.GET.get('taskname', None)
         username = self.get_username(request)
         data = self.q.history(username, task_name=task_name, page=page, limit=limit,request=request)
-        #for item in data:
-
-
-        # data['next']= reverse('queue-user-tasks',kwargs={'page':page+1,},request=request)
-        # if isinstance(data,ObjectId):
-        # return str(obj)
-        #print data
-        return Response(data)  #,indent=4,sort_keys=True))
-
-
-"""
-  # print task_docstring(task_name)
-        html ="<div class='div_help'><b>Task Name: %s<br>Task Docstring:</b><code>%s</code>Example Curl:<br>%s</div>"
-        baseHelp =""curl --data-ascii '{ "function": "%s",
-         "queue": "%s",
-          "args": [],
-          "kwargs": {}
-          }' %s -H Content-Type:application/json"" % (task_name,"celery",reverse("%s-run" % (task_name), request=request))
-        html = html % (task_name,task_docstring(task_name),baseHelp)
-        #html = html % (task_name,markdown.markdown(trim(task_docstring(task_name))),baseHelp)
-        return Response(html) #, template_name='rest_framework/queue_run_api.html')
-
-
-
-from json import JSONEncoder
-from bson.objectid import ObjectId
-
-class MongoEncoder(JSONEncoder):
-    def default(self, obj, **kwargs):
-        if isinstance(obj, ObjectId):
-            return str(obj)
-        else:
-            return JSONEncoder.default(obj, **kwargs)
-
-
-    from rest_framework.renderers import JSONRenderer, JSONPRenderer
-from rest_framework import renderers
-import json
-
-class PlainTextRenderer(renderers.BaseRenderer):
-    media_type = 'text/plain'
-    format = 'txt'
-
-    def render(self, data, media_type=None, renderer_context=None):
-        return data.encode(self.charset)
-
-
-"""
+        return Response(data) 
