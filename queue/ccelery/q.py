@@ -10,7 +10,8 @@ from celery.task.control import inspect
 from celery.result import AsyncResult
 #from celery import send_task
 #from celery.execute import send_task
-from pymongo import Connection, DESCENDING
+from pymongo import MongoClient,DESCENDING
+#from pymongo import Connection, DESCENDING
 from datetime import datetime
 import pickle
 import re, math
@@ -148,7 +149,7 @@ def check_auth(user_id):
 class QueueTask():
     def __init__(self, mongoHost=config.MONGO_HOST, port=config.MONGO_PORT, database=config.MONGO_DB,
                  log_collection=config.MONGO_LOG_COLLECTION, tomb_collection=config.MONGO_TOMBSTONE_COLLECTION, i=i):
-        self.db = Connection(mongoHost, port)
+        self.db = MongoClient(host=config.MONGO_URI) #Connection(mongoHost, port)
         self.database = database
         self.collection = log_collection
         self.tomb_collection = tomb_collection
