@@ -4,12 +4,12 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticatedOrReadOnly,DjangoModelPermissionsOrAnonReadOnly,AllowAny
 from rest_framework.views import APIView
-from ccelery.q import QueueTask, list_tasks, task_docstring
-from models import Run_model
+from cybercom_queue.ccelery.q import QueueTask, list_tasks, task_docstring
+from cybercom_queue.models import Run_model
 from rest_framework.renderers import JSONRenderer, JSONPRenderer
 from renderer import QueueRunBrowsableAPIRenderer
 from rest_framework.parsers import JSONParser,MultiPartParser,FormParser,FileUploadParser
-from util import trim
+from cybercom_queue.util import trim
 from rest_framework.authtoken.models import Token
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator

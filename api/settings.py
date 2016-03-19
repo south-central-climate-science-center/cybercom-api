@@ -82,7 +82,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'queue',
+    'cybercom_queue',
     'catalog',
     'data_store'
 

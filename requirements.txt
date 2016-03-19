@@ -11,7 +11,7 @@ amqplib==1.0.2
 anyjson==0.3.3
 billiard==3.3.0.18
 binaryornot==0.3.0
-celery==3.0.5
+celery==3.1.21
 cookiecutter==0.8.0
 django-filter==0.7
 django-guardian==1.2.0

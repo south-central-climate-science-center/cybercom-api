@@ -19,7 +19,7 @@ urlpatterns = patterns('',
     # Django Rest Login Urls
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # Queue Application
-    url(r'^queue/', include('queue.urls')),
+    url(r'^queue/', include('cybercom_queue.urls')),
     url(r'^data_store/',include('data_store.urls')),
     url(r'^catalog/', include('catalog.urls')),
     # Admin Urls

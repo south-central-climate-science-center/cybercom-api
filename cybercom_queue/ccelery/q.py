@@ -3,7 +3,7 @@ import celeryconfig
 # import cherrypy
 import simplejson as json
 from celery import Celery
-from queue.ccelery import config
+from cybercom_queue.ccelery import config
 
 celery = Celery().config_from_object(celeryconfig)
 from celery.task.control import inspect

@@ -1,4 +1,4 @@
-from queue.ccelery import config
+from cybercom_queue.ccelery import config
 
 BROKER_URL = config.BROKER_URL
 
