@@ -20,7 +20,7 @@ class MongoDataStore(APIView):
     parser_classes = (JSONParser,)
     connect_uri = config.DATA_STORE_MONGO_URI
     view_reverse='data'
-    name = "Grundge"
+    name = "exclude"
     exclude= config.DATA_STORE_EXCLUDE
     #db=MongoClient(host=self.connect_uri)
     def __init__(self):
@@ -48,6 +48,9 @@ class MongoDataStore(APIView):
             self.title = "Database"
             data = list(self.db.database_names())
             data.sort()
+            #This section used for catalog django app
+            if self.name == "include":
+                data = self.include
 
             for db in data:
                 if db in self.exclude:

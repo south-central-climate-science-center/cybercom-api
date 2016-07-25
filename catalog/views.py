@@ -32,6 +32,8 @@ class Catalog(MongoDataStore):
     connect_uri = config.CATALOG_URI
     view_reverse='catalog'
     exclude = config.CATALOG_EXCLUDE
+    include = config.CATALOG_INCLUDE
+    name = "include"
 
 class CatalogData(DataStore, generics.ListCreateAPIView):
     connect_uri = config.CATALOG_URI

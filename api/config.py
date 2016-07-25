@@ -48,6 +48,7 @@ CELERY_MONGODB_BACKEND_SETTINGS = {
 
 #******* Catalog ******************************************************
 CATALOG_EXCLUDE = ['admin','local','cybercom_auth','system.users']
+CATALOG_INCLUDE = ['catalog']
 CATALOG_URI = 'mongodb://localhost:27017/'
 
 #*********** Data Store ************************************************
