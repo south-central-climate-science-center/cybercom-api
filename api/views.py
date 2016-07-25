@@ -60,6 +60,7 @@ class UserProfile(LoginRequiredMixin,APIView):
         password = request.DATA.get('password', None)
         if password:
             user.set_password(password)
+            user.save()
             data = {"password":"Successfully Updated"}
             return Response(data)
         auth_tok  = request.DATA.get('auth-token', None)
