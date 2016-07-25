@@ -20,8 +20,8 @@ def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1
     db = DB_MongoClient
     if query:
         query = ast.literal_eval(query)
-        q = [(k, v) for k, v in query['spec'].items()]
-        query['spec'] = dict(q)
+        q = [(k, v) for k, v in query['filter'].items()]
+        query['filter'] = dict(q)
         #print query
         count = db[database][collection].find(**query).count()
         #print count
