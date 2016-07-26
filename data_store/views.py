@@ -59,6 +59,23 @@ class MongoDataStore(APIView):
                     urls.append(reverse("%s-list"% (self.view_reverse), kwargs={'database': db}, request=request))
             return Response({
                 'Available Databases': urls})
+    def post(self,request,database=None,format=None):
+            if database:
+                col=request.DATA.get('collection', None)
+                if col:
+                    data = request.DATA.get('data', {})
+                    self.db[database][col].insert_one(data)
+                    self.db[database][col].remove({})
+                    return Response({'database':database,'collection':col})
+                else:
+                    return Response({'ERROR':"Must submit 'collection' name as part of post"})
+            else:
+                data = request.DATA.get('database', None)
+                if data:
+                    self.db[data]['default_collection'].insert_one({})
+                    return Response({'database':data})
+                else:
+                    return Response({'ERROR':"Must submit 'database' name as part of post"})
 
 
 class DataStore(APIView):
