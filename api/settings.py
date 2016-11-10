@@ -103,6 +103,10 @@ ROOT_URLCONF = 'api.urls'
 
 WSGI_APPLICATION = 'api.wsgi.application'
 
+# Database
+DATABASES = config.DATABASES
+
+DATABASE_ROUTERS = config.DATABASE_ROUTERS
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
