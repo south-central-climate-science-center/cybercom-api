@@ -5,7 +5,7 @@ from rest_framework.reverse import reverse
 from rest_framework.permissions import IsAuthenticatedOrReadOnly,DjangoModelPermissionsOrAnonReadOnly,AllowAny
 from rest_framework.views import APIView
 from cybercom_queue.ccelery.q import QueueTask, list_tasks, task_docstring
-from cybercom_queue.models import Run_model
+from cybercom_queue.models import taskModel #Run_model
 from rest_framework.renderers import JSONRenderer, JSONPRenderer
 from renderer import QueueRunBrowsableAPIRenderer
 from rest_framework.parsers import JSONParser,MultiPartParser,FormParser,FileUploadParser
@@ -13,6 +13,10 @@ from cybercom_queue.util import trim
 from rest_framework.authtoken.models import Token
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+#Setup Task Permissions
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
+from .permission import cybercomTaskPermission
 #task = list_tasks()['available_tasks']
 #from rest_framework.viewsets import ModelViewSet
 #from serializer import FileUploadSerializer
@@ -34,8 +38,18 @@ class Queue(APIView):
         if not self.task_list:
             self.task_list = []
             for task in self.task:
+                #add task url to view
                 self.task_list.append(reverse('run-main',kwargs={'task_name':task},request=request))
-                #self.task_list.append(reverse('%s-run' % task, request=request))
+
+                # Need to wait until task queue is ready. Admin usr must Initialize permissions. I will
+                # probably find a better place for this code. For now it lives here. Admin user has to 
+                # double check tasks and run view to set any new permissions. Only one time required or
+                # when new task is added!
+                if request.user.is_superuser:
+                    ct = ContentType.objects.get_for_model(taskModel)
+                    codename= task.replace('.','_')
+                    perm_name ="Can Run {0}".format(task)
+                    Permission.objects.get_or_create(codename=codename, name=perm_name, content_type=ct)
         return Response({
             'Tasks': self.task_list,
             'Task History': reverse('queue-user-tasks',request=request)
@@ -43,8 +57,8 @@ class Queue(APIView):
 
 
 class Run(APIView):
-    permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
-    model = Run_model
+    permission_classes = (cybercomTaskPermission,) #(DjangoModelPermissionsOrAnonReadOnly,)
+    model = taskModel 
     parser_classes = (JSONParser,MultiPartParser,FormParser)
     renderer_classes = (QueueRunBrowsableAPIRenderer, JSONRenderer, JSONPRenderer,)
 
@@ -92,7 +106,7 @@ class Run(APIView):
 
 class UserResult(APIView):
     permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
-    model = Run_model
+    model = taskModel 
     parser_classes = (JSONParser,)
 
     def __init__(self,q=q, *args, **kwargs):
@@ -110,7 +124,7 @@ class UserResult(APIView):
 
 class UserTasks(APIView):
     permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
-    model = Run_model
+    model = taskModel 
 
     def __init__(self,q=q, *args, **kwargs):
         self.q = q #QueueTask()

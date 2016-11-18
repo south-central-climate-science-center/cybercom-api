@@ -5,14 +5,15 @@ from rest_framework.views import APIView
 from rest_framework.reverse import reverse
 from pymongo import MongoClient
 from api import config
-from .models import dumb_model
+from .models import dataStore
 # Create your views here.
 from rest_framework.settings import api_settings
 from .mongo_paginator import MongoDataPagination, MongoDistinct, MongoDataGet
 from .renderer import DataBrowsableAPIRenderer, mongoJSONPRenderer,mongoJSONRenderer
 from rest_framework.renderers import XMLRenderer, YAMLRenderer,JSONPRenderer
 from rest_framework.parsers import JSONParser
-
+from permission import dataStorePermission
+ 
 class MongoDataStore(APIView):
     permission_classes = ( IsAuthenticatedOrReadOnly,)
     renderer_classes = (DataBrowsableAPIRenderer, mongoJSONRenderer, mongoJSONPRenderer, XMLRenderer, YAMLRenderer)
@@ -22,14 +23,8 @@ class MongoDataStore(APIView):
     view_reverse='data'
     name = "exclude"
     exclude= config.DATA_STORE_EXCLUDE
-    #db=MongoClient(host=self.connect_uri)
     def __init__(self):
         self.db = MongoClient(host=self.connect_uri)
-    #def dispatch(self, request, *args, **kwargs):
-        #(self, connect_uri=config.DATA_STORE_MONGO_URI):
-     #   print self.connect_uri
-      #  self.db = MongoClient(host=self.connect_uri)
-      #  return super(MongoDataStore, self).dispatch(request, *args, **kwargs)
     def get(self, request, database=None, format=None):
         #self.db = MongoClient(host=self.connect_uri)
         urls = []
@@ -79,18 +74,13 @@ class MongoDataStore(APIView):
 
 
 class DataStore(APIView):
-    permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
-    model = dumb_model
+    permission_classes = (dataStorePermission,) #DjangoModelPermissionsOrAnonReadOnly,)
+    model = dataStore 
     renderer_classes = (DataBrowsableAPIRenderer, mongoJSONRenderer, mongoJSONPRenderer, XMLRenderer, YAMLRenderer)
     parser_classes = (JSONParser,)
     connect_uri = config.DATA_STORE_MONGO_URI
     def __init__(self):
         self.db = MongoClient(host=self.connect_uri)
-    #def dispatch(self, request, *args, **kwargs):
-        #(self, connect_uri=config.DATA_STORE_MONGO_URI):
-    #    print self.connect_uri
-    #    self.db = MongoClient(host=self.connect_uri)
-    #    return super(DataStore, self).dispatch(request, *args, **kwargs)
 
     def get(self, request, database=None, collection=None, format=None):
         #self.db = MongoClient(host=self.connect_uri)
@@ -122,7 +112,7 @@ class DataStore(APIView):
         return Response(request.DATA)
 class DataStoreDetail(APIView):
     permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
-    model = dumb_model
+    model = dataStore
     renderer_classes = (DataBrowsableAPIRenderer, mongoJSONRenderer, mongoJSONPRenderer, XMLRenderer, YAMLRenderer)
     parser_classes = (JSONParser,)
     connect_uri = config.DATA_STORE_MONGO_URI

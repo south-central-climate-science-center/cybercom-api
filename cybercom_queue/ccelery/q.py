@@ -60,26 +60,30 @@ def update_tasks(timeout=60000, user="guest"):
     global i
 
     #i = inspect()
-    if memcache:
-        mc = memcache.Client(['%s:%s' % (config.MEMCACHE_HOST, config.MEMCACHE_PORT)])
-        tasks = "REGISTERED_TASKS_%s" % user
-        queues = "AVAILABLE_QUEUES_%s" % user
-        REGISTERED_TASKS = mc.get(tasks)
-        AVAILABLE_QUEUES = mc.get(queues)
-        if not REGISTERED_TASKS:
+    try:
+        if memcache:
+            mc = memcache.Client(['%s:%s' % (config.MEMCACHE_HOST, config.MEMCACHE_PORT)])
+            tasks = "REGISTERED_TASKS_%s" % user
+            queues = "AVAILABLE_QUEUES_%s" % user
+            REGISTERED_TASKS = mc.get(tasks)
+            AVAILABLE_QUEUES = mc.get(queues)
+            if not REGISTERED_TASKS:
+                REGISTERED_TASKS = set()
+                for item in i.registered().values():
+                    REGISTERED_TASKS.update(item)
+                mc.set(tasks, REGISTERED_TASKS, timeout)
+                REGISTERED_TASKS = mc.get(tasks)
+            if not AVAILABLE_QUEUES:
+                mc.set(queues, set([item[0]["exchange"]["name"] for item in i.active_queues().values()]), timeout)
+                AVAILABLE_QUEUES = mc.get(queues)
+        else:
             REGISTERED_TASKS = set()
             for item in i.registered().values():
                 REGISTERED_TASKS.update(item)
-            mc.set(tasks, REGISTERED_TASKS, timeout)
-            REGISTERED_TASKS = mc.get(tasks)
-        if not AVAILABLE_QUEUES:
-            mc.set(queues, set([item[0]["exchange"]["name"] for item in i.active_queues().values()]), timeout)
-            AVAILABLE_QUEUES = mc.get(queues)
-    else:
+            AVAILABLE_QUEUES = set([item[0]["exchange"]["name"] for item in i.active_queues().values()])
+    except:
         REGISTERED_TASKS = set()
-        for item in i.registered().values():
-            REGISTERED_TASKS.update(item)
-        AVAILABLE_QUEUES = set([item[0]["exchange"]["name"] for item in i.active_queues().values()])
+        AVAILABLE_QUEUES = set()
     return (REGISTERED_TASKS, AVAILABLE_QUEUES)
 
 

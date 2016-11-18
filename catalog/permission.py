@@ -1,32 +1,49 @@
-__author__ = 'mstacy'
-from rest_framework.permissions import DjangoModelPermissions
+from rest_framework import permissions
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
+from itertools import chain
 
-
-class DjangoMongoPermissionsOrAnonReadOnly(DjangoModelPermissions):
+class catalogPermission(permissions.BasePermission):
     """
-    Similar to DjangoModelPermissions, except that anonymous users are
-    allowed read-only access.
+    Global permission check for blacklisted IPs.
     """
 
-    authenticated_users_only = False
+    def has_permission(self, request, view):
+        perms=list(request.user.get_all_permissions()) 
+        for itm in perms:
+            print itm
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        else:
+            django_app = 'catalog'
+            admin_perm = 'catalog.catalog_admin'
+            path = request.path
+            path=path.split('/')
+            code_perm= "{0}.edit_{1}_{2}".format(django_app,path[-3],path[-2])
+            perms=list(request.user.get_all_permissions())
+            if request.user.is_superuser or admin_perm in perms or code_perm in perms:
+                return True
+            else:
+                return False 
 
-    def get_required_permissions(self, method, model_cls):
-        """
-        Given a model and an HTTP method, return the list of permission
-        codes that the user is required to have.
-        """
-        try:
-            appLabel = model_cls._meta.app_label
-        except:
-            #added for mongoengine
-            appLabel = model_cls._meta['app_label']
-        try:
-            modelName = get_model_name(model_cls)
-        except:
-            #add for mongoengine
-            modelName = model_cls._meta['model_name']
-        kwargs = {
-            'app_label': appLabel,
-            'model_name': modelName
-        }
-        return [perm % kwargs for perm in self.perms_map[method]]
+class createCatalogPermission(permissions.BasePermission):
+    """
+    Create Database and Collections permissions.
+    """
+
+    def has_permission(self, request, view):
+        
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        else:
+            #Control catalog names per api_config
+            if len(request.path.split('/'))==5:
+                return False
+            django_app = 'catalog'
+            admin_perm = 'catalog.catalog_admin'
+            code_perm= "{0}.{1}".format(django_app,'catalog_create')
+            perms=list(request.user.get_all_permissions())
+            if request.user.is_superuser or admin_perm in perms or code_perm in perms:
+                return True
+            else:
+                return False
