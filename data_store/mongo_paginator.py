@@ -3,6 +3,9 @@ import ast
 import math
 import collections
 from bson.objectid import ObjectId
+from bson.code import Code
+from operator import itemgetter
+
 from ordereddict import OrderedDict
 from rest_framework.templatetags.rest_framework import replace_query_param
 
@@ -15,6 +18,27 @@ def MongoDistinct(field,DB_MongoClient, database, collection, query=None):
         return db[database][collection].find(**query).distinct(field)
     return db[database][collection].distinct(field)
 
+def MongoGroupby(variable,groupby,DB_MongoClient, database, collection, query=None):
+    db = DB_MongoClient[database][collection]
+    reducer = Code(" function(obj,prev) {prev.Sum += obj.%s;prev.count+=1; prev.Avg = prev.Sum/prev.count;}" % (variable))
+    results = db.group(groupby,query,{'Sum':0,'Avg':0,'count':0,'Variable':variable},reducer)
+    data_out=[]
+    try:
+        data_out = multikeysort(results, groupby)
+    except:
+        data_out=results
+    return data_out
+
+def multikeysort(self,items, columns):
+    comparers = [ ((itemgetter(col[1:].strip()), -1) if col.startswith('-') else (itemgetter(col.strip()), 1)) for col in columns]
+    def comparer(left, right):
+        for fn, mult in comparers:
+            result = cmp(fn(left), fn(right))
+            if result:
+                return mult * result
+            else:
+                return 0
+    return sorted(items, cmp=comparer)
 
 def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1, nPerPage=None, uri=''):
     db = DB_MongoClient
@@ -81,6 +105,21 @@ def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1
         od = OrderedDict(sorted(result.items()))
     return od
 
+def MongoDataInsert(DB_MongoClient, database, collection,data):
+    db = DB_MongoClient
+    return db[database][collection].insert(data)
+    if type(data) == type([]):
+        return db[database][collection].insertMany(data)
+    else:
+        return db[database][collection].insertOne(data)
+    
 def MongoDataGet(DB_MongoClient, database, collection,id):
     db = DB_MongoClient
     return db[database][collection].find_one({'_id':ObjectId(id)})
+def MongoDataDelete(DB_MongoClient, database, collection,id):
+    db = DB_MongoClient
+    return db[database][collection].delete_one({'_id':ObjectId(id)})
+def MongoDataSave(DB_MongoClient, database, collection,id,data):
+    db = DB_MongoClient
+    data['_id']=ObjectId(id) 
+    return db[database][collection].save(data)

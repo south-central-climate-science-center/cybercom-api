@@ -8,7 +8,7 @@ from api import config
 from .models import dataStore
 # Create your views here.
 from rest_framework.settings import api_settings
-from .mongo_paginator import MongoDataPagination, MongoDistinct, MongoDataGet
+from .mongo_paginator import MongoDataPagination, MongoDistinct,MongoGroupby, MongoDataGet,MongoDataDelete,MongoDataSave,MongoDataInsert
 from .renderer import DataBrowsableAPIRenderer, mongoJSONPRenderer,mongoJSONRenderer
 from rest_framework.renderers import XMLRenderer, YAMLRenderer,JSONPRenderer
 from rest_framework.parsers import JSONParser
@@ -105,11 +105,23 @@ class DataStore(APIView):
                 data = MongoDistinct(field,self.db, database, collection, query=query)
             else:
                 data = {"ERROR":"Must provide keyword field to perform distinct operation."}
+        elif action.lower()=="groupby":
+            variable = request.QUERY_PARAMS.get('variable',None)
+            if not variable:
+                data = {"ERROR":"Must provide keyword field to perform aggregation operation."}
+            groupby=request.QUERY_PARAMS.get('groupby',None)
+            if groupby:
+                gbs=groupby.split(',')
+                data = MongoGroupby(variable,gbs,self.db, database, collection, query=query)
+            else:
+                data = {"ERROR":"Must provide groupby column names. Multiple separate by comma."}
         else:
             data = MongoDataPagination(self.db, database, collection, query=query, page=page, nPerPage=page_size, uri=url)
         return Response(data)
     def post(self,request,database=None,collection=None,format=None):
-        return Response(request.DATA)
+        result =MongoDataInsert(self.db, database, collection,request.DATA)
+        return Response(result)
+
 class DataStoreDetail(APIView):
     permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
     model = dataStore
@@ -121,6 +133,11 @@ class DataStoreDetail(APIView):
     def get(self,request,database=None, collection=None,id=None, format=None):
         data = MongoDataGet(self.db,database,collection,id)
         return Response(data)
+    def put(self,request,database=None, collection=None,id=None, format=None):
+        return Response(MongoDataSave(self.db,database,collection,id,request.DATA))
+    def delete(self,request,database=None, collection=None,id=None, format=None):
+        result = MongoDataDelete(self.db,database,collection,id)
+        return Response({"deleted_count":result.deleted_count,"_id":id})
 """
         if query:
             query = ast.literal_eval(query)
