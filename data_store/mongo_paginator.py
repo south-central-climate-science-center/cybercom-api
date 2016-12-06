@@ -115,11 +115,47 @@ def MongoDataInsert(DB_MongoClient, database, collection,data):
     
 def MongoDataGet(DB_MongoClient, database, collection,id):
     db = DB_MongoClient
-    return db[database][collection].find_one({'_id':ObjectId(id)})
+    id_types=get_id_types(id)
+    for term_id in id_types:
+        try:
+            data = db[database][collection].find_one({'_id':term_id})
+            if data:
+                return data
+        except:
+            pass
+    return {"Error":"DATA RECORD NOT FOUND"}
 def MongoDataDelete(DB_MongoClient, database, collection,id):
     db = DB_MongoClient
-    return db[database][collection].delete_one({'_id':ObjectId(id)})
+    id_types=get_id_types(id)
+    for term_id in id_types:
+        result= db[database][collection].delete_one({'_id':term_id})
+        if result.deleted_count:
+            return result
+    #else:
+    #    return db[database][collection].delete_one({'_id':id})
 def MongoDataSave(DB_MongoClient, database, collection,id,data):
     db = DB_MongoClient
-    data['_id']=ObjectId(id) 
-    return db[database][collection].save(data)
+    if db[database][collection].find_one({'_id':ObjectId(id)}):
+        data['_id']=ObjectId(id) 
+        return db[database][collection].save(data)
+    elif db[database][collection].find_one({'_id':id}):
+        return db[database][collection].save(data)
+    else:
+        return {"Error":"UNABLE TO UPDATE: DATA RECORD NOT FOUND"}
+def get_id_types(id):
+    results=[]
+    try:
+        results.append(ObjectId(id))
+    except:
+        pass
+    results = results + [id,str(id)]
+    try:
+        results.append(float(id))
+    except:
+        pass
+    try:
+        results.append(int(float(str(id))))
+    except:
+        pass
+    print results
+    return results

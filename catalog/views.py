@@ -3,7 +3,7 @@ from rest_framework_mongoengine import generics
 from .models import catalogModel
 from rest_framework.parsers import JSONParser
 
-from .permission import catalogPermission,createCatalogPermission
+from .permission import createCatalogPermission, CatalogPermission
 
 from data_store.views import MongoDataStore, DataStore, DataStoreDetail
 from api import config
@@ -18,10 +18,11 @@ class Catalog(MongoDataStore):
     name = "include"
 
 class CatalogData(DataStore, generics.ListCreateAPIView):
-    permission_classes = (catalogPermission,)
+    permission_classes = (CatalogPermission,)
     model = catalogModel
     connect_uri = config.CATALOG_URI
 
 class CatalogDataDetail(DataStoreDetail):
+    permission_classes = (CatalogPermission,)
     model = catalogModel
     connect_uri = config.CATALOG_URI

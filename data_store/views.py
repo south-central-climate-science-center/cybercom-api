@@ -12,10 +12,10 @@ from .mongo_paginator import MongoDataPagination, MongoDistinct,MongoGroupby, Mo
 from .renderer import DataBrowsableAPIRenderer, mongoJSONPRenderer,mongoJSONRenderer
 from rest_framework.renderers import XMLRenderer, YAMLRenderer,JSONPRenderer
 from rest_framework.parsers import JSONParser
-from permission import dataStorePermission
+from permission import  DataStorePermission, createDataStorePermission
  
 class MongoDataStore(APIView):
-    permission_classes = ( IsAuthenticatedOrReadOnly,)
+    permission_classes = ( createDataStorePermission,)
     renderer_classes = (DataBrowsableAPIRenderer, mongoJSONRenderer, mongoJSONPRenderer, XMLRenderer, YAMLRenderer)
     title = "Database"
     parser_classes = (JSONParser,)
@@ -55,6 +55,41 @@ class MongoDataStore(APIView):
             return Response({
                 'Available Databases': urls})
     def post(self,request,database=None,format=None):
+            #Action Delete
+            action=request.DATA.get('action', None)
+            collection=request.DATA.get('collection', None)
+            if action.lower()=='delete':
+                print(config.FORCE_SCRIPT_NAME)
+                try:
+                    shift_url = len(config.FORCE_SCRIPT_NAME.split('/'))
+                    print shift_url
+                    if shift_url>1:
+                        shift=shift_url -3
+                    else:
+                        shift=-1
+                except:
+                    shift =-1
+                if database:
+                    if len(request.path.split('/'))==5+shift:
+                        try:
+                            self.db.drop_database(database)
+                            return Response({database:"Deleted"})
+                        except Exception as e:
+                            return Response({"Error":str(e)})
+                    else:
+                        return Response({"ERROR":"Must be on Database View to drop database."})
+                elif collection:
+                    if len(request.path.split('/'))==6+shift:
+                        try:
+                            self.db.drop_collection(collection)
+                            return Response({collection:"Deleted"})
+                        except Exception as e:
+                            return Response({"Error":str(e)})
+                    else:
+                        return Response({"ERROR":"Must be on Collection View to drop collection."})
+                else:
+                    return Response({"ERROR":"Database {0} Collection {1} Action {2}".format(database,collection,action)})
+            #Action Create (default None)
             if database:
                 col=request.DATA.get('collection', None)
                 if col:
@@ -74,7 +109,7 @@ class MongoDataStore(APIView):
 
 
 class DataStore(APIView):
-    permission_classes = (dataStorePermission,) #DjangoModelPermissionsOrAnonReadOnly,)
+    permission_classes = (DataStorePermission,) #DjangoModelPermissionsOrAnonReadOnly,)
     model = dataStore 
     renderer_classes = (DataBrowsableAPIRenderer, mongoJSONRenderer, mongoJSONPRenderer, XMLRenderer, YAMLRenderer)
     parser_classes = (JSONParser,)
@@ -123,7 +158,7 @@ class DataStore(APIView):
         return Response(result)
 
 class DataStoreDetail(APIView):
-    permission_classes = (DjangoModelPermissionsOrAnonReadOnly,)
+    permission_classes = (DataStorePermission,) #DjangoModelPermissionsOrAnonReadOnly,)
     model = dataStore
     renderer_classes = (DataBrowsableAPIRenderer, mongoJSONRenderer, mongoJSONPRenderer, XMLRenderer, YAMLRenderer)
     parser_classes = (JSONParser,)
@@ -138,28 +173,3 @@ class DataStoreDetail(APIView):
     def delete(self,request,database=None, collection=None,id=None, format=None):
         result = MongoDataDelete(self.db,database,collection,id)
         return Response({"deleted_count":result.deleted_count,"_id":id})
-"""
-        if query:
-            query = ast.literal_eval(query)
-            print query
-            q = [ (k, v) for k, v in query['spec'].items() ]
-            query['spec'] = dict(q)
-            print query
-            data = [row for row in self.db[database][collection].find(**query)]
-        else:
-            data = [row for row in self.db[database][collection].find()]
-
-        paginator = Paginator(data,page_size)
-
-        try:
-            result =paginator.page(page)
-        except PageNotAnInteger:
-            result = paginator.page(1)
-        except EmptyPage:
-            result = paginator.page(paginator.num_pages)
-        serializer = PaginationSerializer(instance=result,context={'request': request})
-        return Response(serializer.data)
-    #def put(self,request,database=None,collection=None,format=None):
-    #    return Response(request.DATA)
-
-"""

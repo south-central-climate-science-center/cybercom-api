@@ -6,7 +6,7 @@ from api import config
 from models import catalogModel
 from pymongo import MongoClient
 
-def setpermissions(app_label,model,codename,name):
+def setpermissions(app_label,codename,name):
     ct = ContentType.objects.get_for_model(catalogModel)
     #ct=ContentType.objects.get(app_label=app_label)
     Permission.objects.get_or_create(codename=codename, name=name, content_type=ct)
@@ -15,7 +15,11 @@ def setpermissions(app_label,model,codename,name):
 db = MongoClient(host=config.CATALOG_URI)
 for catalog in config.CATALOG_INCLUDE:
     for col in db[catalog].collection_names():
-        codename= "edit_{0}_{1}".format(catalog,col)
-        name = "Edit {0} {1}".format(catalog,col)
-        setpermissions('catalog','catalogModel',codename,name)
+        if not (col in config.CATALOG_EXCLUDE):
+            for method in [('post','ADD'),('put','UPDATE'),('delete','DELETE'),('safe','SAFE METHODS')]:
+                codename= "{0}_{1}_{2}".format(catalog,col,method[0])
+                name = "{0} {1} {2}".format(catalog,col,method[1])
+                setpermissions('catalog',codename,name)
 
+#Create Admin Permissions
+setpermissions('catalog','catalog_admin','Catalog Admin')
