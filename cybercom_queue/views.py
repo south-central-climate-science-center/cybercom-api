@@ -51,7 +51,7 @@ class Queue(APIView):
                     perm_name ="Can Run {0}".format(task)
                     Permission.objects.get_or_create(codename=codename, name=perm_name, content_type=ct)
             if not self.task_list:
-                self.task_list.append("ERROR: Tasks are currently loading or Task Queue is down. Please wait or contact System Admin")
+                self.task_list.append("ERROR: Tasks are currently loading or Task Queue is down. Please wait or contact System Administrator.")
         return Response({
             'Tasks': self.task_list,
             'Task History': reverse('queue-user-tasks',request=request)

@@ -23,7 +23,6 @@ class CatalogPermission(permissions.BasePermission):
             code_perm= "{0}.{1}_{2}_{3}".format(django_app,database,collection,'safe')
             print perms, admin_perm,code_perm
             if self.anonymous or admin_perm in perms or code_perm in perms:
-                print "shit"
                 return True
             else:
                 return False
@@ -47,7 +46,7 @@ class createCatalogPermission(permissions.BasePermission):
             admin_perm = 'catalog.catalog_admin'
             #Control catalog names per api_config
             path=request.path.split('/')
-            if len(path)-path.index(django_app)==2:
+            if len(path)-(path.index(django_app))==3:
                 return False 
             perms=list(request.user.get_all_permissions())
             if request.user.is_superuser or admin_perm in perms: #or code_perm in perms:
