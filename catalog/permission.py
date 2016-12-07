@@ -43,12 +43,12 @@ class createCatalogPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         else:
-            #Control catalog names per api_config
-            if len(request.path.split('/'))==5:
-                return False
             django_app = 'catalog'
             admin_perm = 'catalog.catalog_admin'
-            #code_perm= "{0}.{1}".format(django_app,'catalog_create')
+            #Control catalog names per api_config
+            path=request.path.split('/')
+            if len(path)-path.index(django_app)==2:
+                return False 
             perms=list(request.user.get_all_permissions())
             if request.user.is_superuser or admin_perm in perms: #or code_perm in perms:
                 return True
