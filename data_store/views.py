@@ -56,7 +56,7 @@ class MongoDataStore(APIView):
                 'Available Databases': urls})
     def post(self,request,database=None,format=None):
             #Action Delete
-            action=request.DATA.get('action', None)
+            action=request.DATA.get('action', '')
             collection=request.DATA.get('collection', None)
             if action.lower()=='delete':
                 print(config.FORCE_SCRIPT_NAME)
