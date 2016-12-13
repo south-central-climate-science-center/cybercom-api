@@ -3,7 +3,9 @@ import celeryconfig
 # import cherrypy
 import simplejson as json
 from celery import Celery
-from cybercom_queue.ccelery import config
+#from cybercom_queue.ccelery import config
+from api import config
+
 
 celery = Celery().config_from_object(celeryconfig)
 from celery.task.control import inspect
@@ -153,7 +155,7 @@ def check_auth(user_id):
 class QueueTask():
     def __init__(self, mongoHost=config.MONGO_HOST, port=config.MONGO_PORT, database=config.MONGO_DB,
                  log_collection=config.MONGO_LOG_COLLECTION, tomb_collection=config.MONGO_TOMBSTONE_COLLECTION, i=i):
-        self.db = MongoClient(host=config.MONGO_URI) #Connection(mongoHost, port)
+        self.db = MongoClient(host=config.DATA_STORE_MONGO_URI) #Connection(mongoHost, port)
         self.database = database
         self.collection = log_collection
         self.tomb_collection = tomb_collection

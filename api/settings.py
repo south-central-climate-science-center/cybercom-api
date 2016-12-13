@@ -22,6 +22,8 @@ TEMPLATE_CONTEXT_PROCESSORS = global_settings.TEMPLATE_CONTEXT_PROCESSORS + (
     "api.processor.title",
 )
 
+USE_X_FORWARDED_HOST =  config.USE_X_FORWARDED_HOST
+SECURE_PROXY_SSL_HEADER = config.SECURE_PROXY_SSL_HEADER
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config.SECRET_KEY
 
