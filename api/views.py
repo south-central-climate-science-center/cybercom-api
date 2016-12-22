@@ -79,7 +79,7 @@ class UserProfile(LoginRequiredMixin,APIView):
             user.save()
             tok = Token.objects.get_or_create(user=self.request.user)
             data['name'] = user.get_full_name()
-            data['gravator_url']="http://www.gravatar.com/avatar/%s" % (md5(data['email'].strip(' \t\n\r')).hexdigest())
+            data['gravator_url']="{0}://www.gravatar.com/avatar/{1}".format(request.scheme,md5(data['email'].strip(' \t\n\r')).hexdigest())
             data['auth-token']= str(tok[0])
             return Response(data)
 
