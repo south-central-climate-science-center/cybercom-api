@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from rest_framework_mongoengine import generics
 from .models import catalogModel
 from rest_framework.parsers import JSONParser
 
@@ -17,7 +16,7 @@ class Catalog(MongoDataStore):
     include = config.CATALOG_INCLUDE
     name = "include"
 
-class CatalogData(DataStore, generics.ListCreateAPIView):
+class CatalogData(DataStore): 
     permission_classes = (CatalogPermission,)
     model = catalogModel
     connect_uri = config.CATALOG_URI
