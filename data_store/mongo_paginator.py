@@ -107,6 +107,10 @@ def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1
 
 def MongoDataInsert(DB_MongoClient, database, collection,data):
     db = DB_MongoClient
+    #Update if data already in collection
+    if '_id' in data:
+        id=data['_id']
+        return MongoDataSave(DB_MongoClient, database, collection,id,data)
     return db[database][collection].insert(data)
     if type(data) == type([]):
         return db[database][collection].insertMany(data)
