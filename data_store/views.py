@@ -69,16 +69,7 @@ class MongoDataStore(APIView):
                         shift=-1
                 except:
                     shift =-1
-                if database:
-                    if len(request.path.split('/'))==5+shift:
-                        try:
-                            self.db.drop_database(database)
-                            return Response({database:"Deleted"})
-                        except Exception as e:
-                            return Response({"Error":str(e)})
-                    else:
-                        return Response({"ERROR":"Must be on Database View to drop database."})
-                elif collection:
+                if collection:
                     if len(request.path.split('/'))==6+shift:
                         try:
                             self.db.drop_collection(collection)
@@ -87,6 +78,15 @@ class MongoDataStore(APIView):
                             return Response({"Error":str(e)})
                     else:
                         return Response({"ERROR":"Must be on Collection View to drop collection."})
+                elif database:
+                    if len(request.path.split('/'))==5+shift:
+                        try:
+                            self.db.drop_database(database)
+                            return Response({database:"Deleted"})
+                        except Exception as e:
+                            return Response({"Error":str(e)})
+                    else:
+                        return Response({"ERROR":"Must be on Database View to drop database."})
                 else:
                     return Response({"ERROR":"Database {0} Collection {1} Action {2}".format(database,collection,action)})
             #Action Create (default None)
