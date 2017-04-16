@@ -1,5 +1,5 @@
 __author__ = 'mstacy'
-import ast
+import ast,json
 import math
 import collections
 from bson.objectid import ObjectId
@@ -40,64 +40,57 @@ def multikeysort(self,items, columns):
                 return 0
     return sorted(items, cmp=comparer)
 
-def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1, nPerPage=None, uri=''):
-    db = DB_MongoClient
-    if query:
-        query = ast.literal_eval(query)
-        q = [(k, v) for k, v in query['filter'].items()]
-        query['filter'] = dict(q)
-        #print query
-        count = db[database][collection].find(**query).count()
-        #print count
-        if nPerPage == 0:
-            page=1
-            offset=0
-            max_page=1
-        else:
-            max_page = math.ceil(float(count) / nPerPage)
-            # Page min is 1
-            if page < 1:
-                page = 1
-            #Change page to last page with data
-            if page * nPerPage > count:
-                page = int(max_page)
-            #Cover count =0
-            if page < 1:
-                page = 1
-            offset = (page - 1) * nPerPage
-        data = [row for row in db[database][collection].find(**query).skip(offset).limit(nPerPage)]
-        #replace_query_param(uri, 'page', page)
+def set_pagination_vars(count,page,nPerPage):
+    if nPerPage == 0:
+        page=1
+        offset=0
+        max_page=1
     else:
-        count = db[database][collection].find().count()
-        if nPerPage == 0:
-            page=1
-            offset=0
-            max_page=1
-        else:
-            max_page = math.ceil(float(count) / nPerPage)
-            print max_page
-            # Page min is 1
-            if page < 1:
-                page = 1
-            #Change page to last page with data
-            if page * nPerPage > count:
-                page = int(max_page)
-            #Cover count =0
-            if page < 1:
-                page = 1
-            offset = (page - 1) * nPerPage
-        data = [row for row in db[database][collection].find().skip(offset).limit(nPerPage)]
-    if page < max_page:
-        next = replace_query_param(uri, 'page', page + 1)
+        max_page = math.ceil(float(count) / nPerPage)
+        # Page min is 1
+        if page < 1:
+            page = 1
+        #Change page to last page with data
+        if page * nPerPage > count:
+            page = int(max_page)
+        #Cover count =0
+        if page < 1:
+            page = 1
+        offset = (page - 1) * nPerPage
+    return page,offset,max_page
+def set_next_prev_urls(page,max_page,uri):
+   if page < max_page:
+        nexturi = replace_query_param(uri, 'page', page + 1)
     else:
-        next = None
+        nexturi = None
     if page > 1:
         previous = replace_query_param(uri, 'page', page - 1)
     else:
         previous = None
-    result = {'count': count, 'meta': {'page': page, 'page_size': nPerPage, 'pages': int(max_page)}, 'next': next,
-              'previous': previous, 'results': data}
+    return nexturi, previous
+def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1, nPerPage=None, uri=''):
+    db = DB_MongoClient
+    if query:
+        query = json.loads(query) # ast.literal_eval(query)
+        #q = [(k, v) for k, v in query['filter'].items()]
+        #query['filter'] = dict(q)
+        #print query
+        count = db[database][collection].find(**query).count()
+        #set page variables
+        page,offset,max_page = set_pagination_vars(count,page,nPerPage)
+        #Data
+        data = [row for row in db[database][collection].find(**query).skip(offset).limit(nPerPage)]
+    else:
+        count = db[database][collection].find().count()
+        #set page variables
+        page,offset,max_page = set_pagination_vars(count,page,nPerPage)
+        #Data
+        data = [row for row in db[database][collection].find().skip(offset).limit(nPerPage)]
+    nexturi, previous=set_next_prev_urls(page,max_page,uri)
 
+    result = {'count': count, 'meta': {'page': page, 'page_size': nPerPage, 'pages': int(max_page)}, 'next': nexturi,
+              'previous': previous, 'results': data}
+    #keep sort order
     try:
         od = collections.OrderedDict(sorted(result.items()))
     except:
