@@ -1,5 +1,5 @@
 __author__ = 'mstacy'
-import ast,json
+import json
 import math
 import collections
 from bson.objectid import ObjectId
@@ -12,13 +12,19 @@ from rest_framework.templatetags.rest_framework import replace_query_param
 def MongoDistinct(field,DB_MongoClient, database, collection, query=None):
     db = DB_MongoClient
     if query:
-        query = ast.literal_eval(query)
-        #q = [(k, v) for k, v in query['spec'].items()]
-        #query['spec'] = dict(q)
+        try:
+            query = json.loads(query)
+        except:
+            raise Exception("Query: JSON object could be decoded")
         return db[database][collection].find(**query).distinct(field)
     return db[database][collection].distinct(field)
 
 def MongoGroupby(variable,groupby,DB_MongoClient, database, collection, query=None):
+    if query:
+        try:
+            query = json.loads(query)
+        except:
+            raise Exception("Query: JSON object could be decoded")
     db = DB_MongoClient[database][collection]
     reducer = Code(" function(obj,prev) {prev.Sum += obj.%s;prev.count+=1; prev.Avg = prev.Sum/prev.count;}" % (variable))
     results = db.group(groupby,query,{'Sum':0,'Avg':0,'count':0,'Variable':variable},reducer)
@@ -59,7 +65,7 @@ def set_pagination_vars(count,page,nPerPage):
         offset = (page - 1) * nPerPage
     return page,offset,max_page
 def set_next_prev_urls(page,max_page,uri):
-   if page < max_page:
+    if page < max_page:
         nexturi = replace_query_param(uri, 'page', page + 1)
     else:
         nexturi = None
@@ -71,10 +77,11 @@ def set_next_prev_urls(page,max_page,uri):
 def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1, nPerPage=None, uri=''):
     db = DB_MongoClient
     if query:
-        query = json.loads(query) # ast.literal_eval(query)
-        #q = [(k, v) for k, v in query['filter'].items()]
-        #query['filter'] = dict(q)
-        #print query
+        try:
+            query = json.loads(query)
+        except:
+            raise Exception("Query: JSON object could be decoded")
+
         count = db[database][collection].find(**query).count()
         #set page variables
         page,offset,max_page = set_pagination_vars(count,page,nPerPage)
