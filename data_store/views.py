@@ -58,6 +58,7 @@ class MongoDataStore(APIView):
             #Action Delete
             action=request.DATA.get('action', '')
             collection=request.DATA.get('collection', None)
+            
             if action.lower()=='delete':
                 print(config.FORCE_SCRIPT_NAME)
                 try:
@@ -72,14 +73,15 @@ class MongoDataStore(APIView):
                 if collection:
                     if len(request.path.split('/'))==6+shift:
                         try:
-                            self.db.drop_collection(collection)
+                            self.db[database].drop_collection(collection)
                             return Response({collection:"Deleted"})
                         except Exception as e:
                             return Response({"Error":str(e)})
                     else:
                         return Response({"ERROR":"Must be on Collection View to drop collection."})
-                elif database:
+                elif not database:
                     if len(request.path.split('/'))==5+shift:
+                        database=request.DATA.get('database', None)
                         try:
                             self.db.drop_database(database)
                             return Response({database:"Deleted"})
