@@ -31,6 +31,7 @@ class Queue(APIView):
     def __init__(self,q=q, *args, **kwargs):
         self.q = q #QueueTask()
         self.task = self.q.list()['available_tasks']
+        self.queues = self.q.list()["available_queues"]
         self.task_list = None
         super(Queue, self).__init__(*args, **kwargs)
 
@@ -54,7 +55,8 @@ class Queue(APIView):
                 self.task_list.append("ERROR: Tasks are currently loading or Task Queue is down. Please wait or contact System Administrator.")
         return Response({
             'Tasks': self.task_list,
-            'Task History': reverse('queue-user-tasks',request=request)
+            'Queues': self.queues,
+            'Task History': reverse('queue-user-tasks',request=request),
         })
 
 
