@@ -55,8 +55,8 @@ class Queue(APIView):
                 self.task_list.append("ERROR: Tasks are currently loading or Task Queue is down. Please wait or contact System Administrator.")
         return Response({
             'Tasks': self.task_list,
-            'Queues': self.queues,
             'Task History': reverse('queue-user-tasks',request=request),
+            'Task Queues': self.queues,
         })
 
 
