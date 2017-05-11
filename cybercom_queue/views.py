@@ -2,7 +2,7 @@
 from rest_framework.settings import api_settings
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
-from rest_framework.permissions import IsAuthenticatedOrReadOnly,DjangoModelPermissionsOrAnonReadOnly,AllowAny
+from rest_framework.permissions import IsAuthenticatedOrReadOnly,DjangoModelPermissionsOrAnonReadOnly,AllowAny,IsAdminUser
 from rest_framework.views import APIView
 from cybercom_queue.ccelery.q import QueueTask, list_tasks, task_docstring
 from cybercom_queue.models import taskModel #Run_model
@@ -59,6 +59,15 @@ class Queue(APIView):
             'Task Queues': self.queues,
         })
 
+class flushMemcache(APIView):
+    permission_classes = ( IsAdminUser,)
+
+    def get(self, request,format=None):
+        tup = q.update_tasks()
+        return Response({
+            'Tasks': tup[0],
+            'Task Queues': tup[1],
+        })
 
 class Run(APIView):
     permission_classes = (cybercomTaskPermission,) #(DjangoModelPermissionsOrAnonReadOnly,)
