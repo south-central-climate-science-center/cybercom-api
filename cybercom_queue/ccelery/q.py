@@ -88,6 +88,11 @@ def update_tasks(timeout=60000, user="guest"):
         AVAILABLE_QUEUES = set()
     return (REGISTERED_TASKS, AVAILABLE_QUEUES)
 
+def rm_memcache():
+    if memcache:
+        mc = memcache.Client(['%s:%s' % (config.MEMCACHE_HOST, config.MEMCACHE_PORT)])
+        mc.flush_all()
+        update_tasks()
 
 def list_tasks():
     """ Dump a list of registred tasks """
