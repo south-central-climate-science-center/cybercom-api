@@ -9,8 +9,8 @@ class cybercomTaskPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         perms=list(request.user.get_all_permissions()) 
-        for itm in perms:
-            print itm
+        #for itm in perms:
+        #    print itm
         if request.method in permissions.SAFE_METHODS:
             return True
         else:

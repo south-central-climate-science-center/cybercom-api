@@ -60,10 +60,10 @@ class MongoDataStore(APIView):
             collection=request.DATA.get('collection', None)
             
             if action.lower()=='delete':
-                print(config.FORCE_SCRIPT_NAME)
+                #print(config.FORCE_SCRIPT_NAME)
                 try:
                     shift_url = len(config.FORCE_SCRIPT_NAME.split('/'))
-                    print shift_url
+                    #print shift_url
                     if shift_url>1:
                         shift=shift_url -3
                     else:

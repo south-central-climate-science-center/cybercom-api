@@ -21,7 +21,7 @@ class CatalogPermission(permissions.BasePermission):
         perms=list(request.user.get_all_permissions())
         if request.method in permissions.SAFE_METHODS:
             code_perm= "{0}.{1}_{2}_{3}".format(django_app,database,collection,'safe')
-            print perms, admin_perm,code_perm
+            #print perms, admin_perm,code_perm
             if self.anonymous or admin_perm in perms or code_perm in perms:
                 return True
             else:
