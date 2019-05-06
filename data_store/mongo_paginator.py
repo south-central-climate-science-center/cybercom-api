@@ -1,5 +1,5 @@
 __author__ = 'mstacy'
-import json
+import json,ast
 import math
 import collections
 from bson.objectid import ObjectId
@@ -80,7 +80,10 @@ def MongoDataPagination(DB_MongoClient, database, collection, query=None, page=1
         try:
             query = json.loads(query)
         except:
-            raise Exception("Query: JSON object could be decoded")
+            try:
+                query = ast.literal_eval(query)
+            except:
+                raise #Exception("Query: JSON object could be decoded")
 
         count = db[database][collection].find(**query).count()
         #set page variables

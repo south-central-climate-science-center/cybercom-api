@@ -13,6 +13,7 @@ from hashlib import md5
 #from rest_framework import viewsets
 #from rest_framework.permissions import AllowAny
 #from .permissions import IsStaffOrTargetUser
+from utils import get_size
 
 #Login required mixin
 class LoginRequiredMixin(object):
@@ -54,6 +55,7 @@ class UserProfile(LoginRequiredMixin,APIView):
         rdata['name'] = data.get_full_name() 
         rdata['gravator_url']="{0}://www.gravatar.com/avatar/{1}".format(request.scheme,md5(rdata['email'].strip(' \t\n\r')).hexdigest()) 
         rdata['auth-token']= str(tok[0])
+        rdata['data-usage'] = str(get_size('/cmip5_tasks/{0}'.format(str(self.request.user)))) 
         return Response(rdata)
     def post(self,request,format=None):
         user = User.objects.get(pk=self.request.user.id)
